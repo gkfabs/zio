@@ -2765,6 +2765,13 @@ object ZStreamSpec extends ZIOBaseSpec {
           }
         ),
         suite("mapZIOPar")(
+          test("i10195 - partially consumed output") {
+            val inputStream = ZStream.fromChunks(Seq.fill(1)(Chunk.fill(100)("abc")): _*)
+
+            for {
+              _ <- inputStream.mapZIOPar(8)(_ => ZIO.unit).take(1).runDrain
+            } yield assertCompletes
+          } @@ TestAspect.timeout(30.seconds),
           test("foreachParN equivalence") {
             checkN(10)(Gen.small(Gen.listOfN(_)(Gen.byte)), Gen.function(Gen.successes(Gen.byte))) { (data, f) =>
               val s = ZStream.fromIterable(data)
