@@ -713,7 +713,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
                              case Right(cause) =>
                                val continue = outgoing.offer(Fiber.done(ZChannel.failLeftUnit))
 
-                               if (cause.isInterruptedOnly) outgoing.takeAll *> continue
+                               if (cause.isInterruptedOnly) ZIO.uninterruptible(outgoing.takeAll *> continue)
                                else failureRef.update(_ && cause) *> continue
                            })
                            .ignore
@@ -802,7 +802,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
               case Right(cause) =>
                 val continue = outgoing.offer(ZChannel.failLeftUnit)
 
-                if (cause.isInterruptedOnly) outgoing.takeAll *> continue
+                if (cause.isInterruptedOnly) ZIO.uninterruptible(outgoing.takeAll *> continue)
                 else failure.update(_ && cause) *> continue
             })
             .ignore
